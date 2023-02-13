@@ -1,0 +1,127 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
+    id 'kotlin-parcelize'
+    id 'maven-publish'
+    id 'signing'
+}
+
+android {
+    compileSdk 33
+    namespace 'com.simla.geohelper'
+
+    defaultConfig {
+        minSdk 21
+        targetSdk 33
+        versionCode 10
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+}
+
+ext {
+    retrofitVersion = '2.9.0'
+    okHttpVersion = '4.10.0'
+    moshiVersion = '1.14.0'
+    kotlinCoroutinesVersion = '1.6.4'
+}
+
+dependencies {
+
+    implementation "com.squareup.retrofit2:retrofit:$retrofitVersion"
+    implementation "com.squareup.retrofit2:converter-moshi:$retrofitVersion"
+
+    implementation "com.squareup.okhttp3:okhttp:$okHttpVersion"
+
+    implementation "com.squareup.moshi:moshi:$moshiVersion"
+    kapt "com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion"
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion"
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    testImplementation 'org.json:json:20180813'
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.simla.android'
+            artifactId = 'geohelper'
+            version = android.defaultConfig.versionName
+
+            afterEvaluate {
+                from components.release
+            }
+
+            pom {
+                name = 'GeoHelper - Android SDK'
+                description = 'Kotlin GeoHelper service client for Android platform.'
+                url = 'https://github.com/simla-tech/GeoHelperAndroid'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'SimlaTech'
+                        name = 'Simla Mobile Dev Team'
+                        email = findProperty("simlaTechEmail") ?: System.getenv("SIMLA_TECH_EMAIL")
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/simla-tech/GeoHelperAndroid.git'
+                    developerConnection = 'scm:git:ssh://github.com/simla-tech/GeoHelperAndroid.git'
+                    url = 'https://github.com/simla-tech/GeoHelperAndroid'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "main"
+            url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            credentials {
+                username = findProperty("ossrhUsername") ?: System.getenv("OSSRH_USERNAME")
+                password = findProperty("ossrhPassword") ?: System.getenv("OSSRH_PASSWORD")
+            }
+        }
+        maven {
+            name = 'local'
+            url = "${findProperty("localMavenPath")}/geohelper"
+        }
+    }
+}
+
+signing {
+    def signingKeyId = findProperty("signingKeyId") ?: System.getenv("SIGNING_KEY_ID")
+    def signingKey = findProperty("signingKey") ?: System.getenv("SIGNING_KEY")
+    def signingPassword = findProperty("signingKeyPassword") ?: System.getenv("SIGNING_KEY_PASSWORD")
+    useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+    sign publishing.publications.release
+}
