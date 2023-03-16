@@ -2,6 +2,8 @@
 
 Kotlin [GeoHelper service](http://geohelper.info/) client for Android platform.
 
+Also we have Swift implementation for the Apple SDK - [simla-tech/GeoHelperSwift](https://github.com/simla-tech/GeoHelperSwift)
+
 ### Dependencies
 
 * OkHttp
